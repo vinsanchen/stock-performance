@@ -1,0 +1,79 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "User Profile",
+      "description": "Stores user-specific settings and profile information.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "The unique identifier for the user." },
+        "displayName": { "type": "string", "description": "The user's display name." },
+        "email": { "type": "string", "description": "The user's email address." },
+        "photoURL": { "type": "string", "description": "The user's profile photo URL." },
+        "upColor": { "type": "string", "description": "Color for gains (e.g., #EF4444)." },
+        "downColor": { "type": "string", "description": "Color for losses (e.g., #10B981)." },
+        "defaultDiscount": { "type": "number", "description": "Default fee discount (e.g., 0.6)." },
+        "discountHistory": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "discount": { "type": "number" },
+              "updatedAt": { "type": "string", "format": "date-time" }
+            }
+          },
+          "description": "History of discount changes."
+        },
+        "createdAt": { "type": "string", "format": "date-time", "description": "When the profile was created." }
+      },
+      "required": ["uid", "email"]
+    },
+    "Transaction": {
+      "title": "Transaction",
+      "description": "Represents a single stock transaction (buy, sell, dividend, fee, tax).",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "The owner's user ID." },
+        "symbol": { "type": "string", "description": "The stock symbol (e.g., 2330, 0050)." },
+        "name": { "type": "string", "description": "The stock name." },
+        "type": { "type": "string", "enum": ["buy", "sell", "margin_buy", "margin_sell", "short_sell", "dividend", "fee", "tax"], "description": "The type of transaction." },
+        "date": { "type": "string", "format": "date-time", "description": "The date of the transaction." },
+        "shares": { "type": "number", "description": "Number of shares involved." },
+        "price": { "type": "number", "description": "Price per share." },
+        "amount": { "type": "number", "description": "Principal amount (shares * price)." },
+        "fee": { "type": "number", "description": "Transaction fee." },
+        "tax": { "type": "number", "description": "Transaction tax." },
+        "totalAmount": { "type": "number", "description": "Final cash flow (amount + fee for buy, amount - fee - tax for sell)." },
+        "discount": { "type": "number", "description": "Discount multiplier used." },
+        "isDayTrade": { "type": "boolean", "description": "Whether it is a day trade." },
+        "note": { "type": "string", "description": "Optional note." }
+      },
+      "required": ["uid", "symbol", "type", "date", "shares", "price"]
+    },
+    "StockCache": {
+      "title": "Stock Cache",
+      "description": "Caches stock metadata and current price to reduce API calls.",
+      "type": "object",
+      "properties": {
+        "symbol": { "type": "string", "description": "The stock symbol." },
+        "name": { "type": "string", "description": "The stock name." },
+        "currentPrice": { "type": "number", "description": "The most recently fetched price." },
+        "lastUpdated": { "type": "string", "format": "date-time", "description": "When the price was last updated." }
+      },
+      "required": ["symbol", "currentPrice"]
+    }
+  },
+  "firestore": {
+    "/users/{uid}": {
+      "schema": "UserProfile",
+      "description": "User profile documents."
+    },
+    "/transactions/{transactionId}": {
+      "schema": "Transaction",
+      "description": "Individual transaction records."
+    },
+    "/stock_cache/{symbol}": {
+      "schema": "StockCache",
+      "description": "Cached stock prices."
+    }
+  }
+}
