@@ -8,7 +8,7 @@ const __dirname = path.dirname(__filename);
 
 async function startServer() {
   const app = express();
-  const PORT = 3010;
+  const PORT = 3000;
 
   // API routes
   app.get("/api/stock-prices", async (req, res) => {
