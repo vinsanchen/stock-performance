@@ -511,7 +511,7 @@ export default function App() {
       </aside>
 
       {/* Mobile Nav */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 flex justify-around p-4 z-50">
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-slate-900/90 backdrop-blur-md border-t border-slate-800 flex justify-around py-3 px-4 z-50">
         <MobileNavItem active={activeTab === 'dashboard'} onClick={() => setActiveTab('dashboard')} icon={<LayoutDashboard />} />
         <MobileNavItem active={activeTab === 'portfolio'} onClick={() => setActiveTab('portfolio')} icon={<Wallet />} />
         <button 
@@ -531,7 +531,7 @@ export default function App() {
             } as any);
             setShowAddForm(true);
           }}
-          className="w-14 h-14 bg-blue-600 rounded-full flex items-center justify-center text-white shadow-lg -mt-10 border-4 border-slate-50"
+          className="w-14 h-14 bg-blue-600 rounded-full flex items-center justify-center text-white shadow-lg -mt-10 border-4 border-slate-900 hover:bg-blue-700 transition-colors"
         >
           <Plus className="w-8 h-8" />
         </button>
@@ -540,10 +540,10 @@ export default function App() {
       </nav>
 
       {/* Main Content */}
-      <main className="p-4 lg:p-8 max-w-6xl mx-auto">
+      <main className="p-4 lg:p-8 max-w-6xl mx-auto pb-24 lg:pb-8">
         <header className="flex items-center justify-between mb-8">
           <div>
-            <h2 className="text-2xl font-bold text-slate-900">
+            <h2 className="text-2xl font-bold text-white">
               {activeTab === 'dashboard' && '資產概況'}
               {activeTab === 'portfolio' && '投資組合'}
               {activeTab === 'transactions' && '交易紀錄'}
@@ -588,8 +588,44 @@ export default function App() {
 
         {activeTab === 'dashboard' && (
           <div className="space-y-6">
-            {/* Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* Mobile Stats Grid - 2x3 */}
+            <div className="grid grid-cols-2 gap-3 md:hidden">
+              <div className="bg-slate-900/80 border border-slate-800 p-4 rounded-2xl flex flex-col justify-between">
+                <span className="text-slate-500 text-xs font-medium">持有成本</span>
+                <span className="text-lg font-bold text-slate-100 mt-1 font-mono">
+                  {stats.totalCost.toLocaleString()}
+                </span>
+              </div>
+              <div className="bg-slate-900/80 border border-slate-800 p-4 rounded-2xl flex flex-col justify-between">
+                <span className="text-slate-500 text-xs font-medium">庫存損益</span>
+                <span className="text-lg font-bold mt-1 font-mono" style={{ color: stats.unrealizedGain >= 0 ? (userProfile?.upColor || '#EF4444') : (userProfile?.downColor || '#10B981') }}>
+                  {stats.unrealizedGain >= 0 ? '+' : ''}{Math.round(stats.unrealizedGain).toLocaleString()}
+                </span>
+              </div>
+              <div className="bg-slate-900/80 border border-slate-800 p-4 rounded-2xl flex flex-col justify-between">
+                <span className="text-slate-500 text-xs font-medium">報酬率</span>
+                <span className="text-lg font-bold mt-1 font-mono" style={{ color: stats.unrealizedGain >= 0 ? (userProfile?.upColor || '#EF4444') : (userProfile?.downColor || '#10B981') }}>
+                  {stats.unrealizedGain >= 0 ? '+' : ''}{stats.unrealizedGainPercent.toFixed(2)}%
+                </span>
+              </div>
+              <div className="bg-slate-900/80 border border-slate-800 p-4 rounded-2xl flex flex-col justify-between">
+                <span className="text-slate-500 text-xs font-medium">今日損益</span>
+                <span className="text-lg font-bold text-slate-400 mt-1 font-mono">-</span>
+              </div>
+              <div className="bg-slate-900/80 border border-slate-800 p-4 rounded-2xl flex flex-col justify-between">
+                <span className="text-slate-500 text-xs font-medium">更新時間</span>
+                <span className="text-sm font-bold text-slate-300 mt-1 font-mono">
+                  {lastUpdated ? format(lastUpdated, 'HH:mm:ss') : '-'}
+                </span>
+              </div>
+              <div className="bg-slate-900/80 border border-slate-800 p-4 rounded-2xl flex flex-col justify-between">
+                <span className="text-slate-500 text-xs font-medium">今日報酬率</span>
+                <span className="text-lg font-bold text-slate-400 mt-1 font-mono">-</span>
+              </div>
+            </div>
+
+            {/* Desktop Stats Grid */}
+            <div className="hidden md:grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <StatCard 
                 label="總資產市值" 
                 value={stats.totalMarketValue} 
@@ -684,7 +720,9 @@ export default function App() {
                 <h3 className="font-bold text-lg text-white">主要持股</h3>
                 <button onClick={() => setActiveTab('portfolio')} className="text-blue-400 text-sm font-medium hover:underline">查看全部</button>
               </div>
-              <div className="overflow-x-auto">
+
+              {/* Desktop Table View */}
+              <div className="hidden md:block overflow-x-auto">
                 <table className="w-full text-left">
                   <thead className="bg-slate-800/50 text-slate-400 text-xs uppercase tracking-wider">
                     <tr>
@@ -699,7 +737,7 @@ export default function App() {
                     {[...portfolio].sort((a, b) => b.marketValue - a.marketValue).slice(0, 5).map((item) => (
                       <tr key={item.symbol} className="hover:bg-slate-800/30 transition-colors">
                         <td className="px-6 py-3">
-                          <div className="font-bold text-white">{item.name}</div>
+                          <div className="font-bold text-white max-w-[150px] truncate" style={{ whiteSpace: 'nowrap', wordBreak: 'keep-all', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.name}</div>
                           <div className="text-xs text-slate-500">{item.symbol}</div>
                         </td>
                         <td className="px-6 py-3 font-medium text-slate-300 text-right">{item.shares.toLocaleString()}</td>
@@ -716,13 +754,81 @@ export default function App() {
                   </tbody>
                 </table>
               </div>
+
+              {/* Mobile Card List View */}
+              <div className="block md:hidden p-4 space-y-3">
+                {[...portfolio].sort((a, b) => b.marketValue - a.marketValue).slice(0, 5).map((item) => {
+                  const priceDiff = item.currentPrice - item.principalCostBasis;
+                  const priceDiffPercent = item.principalCostBasis > 0 ? (priceDiff / item.principalCostBasis) * 100 : 0;
+                  const itemUpColor = userProfile?.upColor || '#ef4444';
+                  const itemDownColor = userProfile?.downColor || '#10b981';
+                  const colorStyle = item.unrealizedGain >= 0 ? itemUpColor : itemDownColor;
+
+                  return (
+                    <div 
+                      key={item.symbol} 
+                      onClick={() => {
+                        setTransactionFilterSymbol(item.symbol);
+                        setTransactionFilterType('all');
+                        setActiveTab('transactions');
+                      }}
+                      className="bg-slate-900/40 border border-slate-800/80 rounded-2xl relative overflow-hidden pl-4 pr-3 py-4 flex flex-col gap-3 cursor-pointer hover:bg-slate-800/20 active:bg-slate-850 transition-colors"
+                    >
+                      {/* Left Side Accent Bar */}
+                      <div className="absolute left-0 top-0 bottom-0 w-1.5" style={{ backgroundColor: colorStyle }}></div>
+                      
+                      {/* Top Row: Name/Code and Price info */}
+                      <div className="flex items-start justify-between">
+                        <div className="overflow-hidden mr-2">
+                          <div className="font-bold text-white text-sm truncate max-w-[130px]" style={{ whiteSpace: 'nowrap', wordBreak: 'keep-all', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            {item.name}
+                          </div>
+                          <div className="text-[10px] text-slate-500 font-mono mt-0.5">{item.symbol}</div>
+                        </div>
+                        <div className="text-right flex-shrink-0">
+                          <div className="text-slate-100 font-bold text-sm font-mono">{item.currentPrice.toFixed(2)}</div>
+                          <div className="text-[10px] font-bold font-mono flex items-center justify-end gap-1 mt-0.5" style={{ color: colorStyle }}>
+                            {priceDiff >= 0 ? '+' : ''}{priceDiff.toFixed(2)} ({priceDiffPercent >= 0 ? '+' : ''}{priceDiffPercent.toFixed(2)}%)
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Small Bottom Metrics */}
+                      <div className="grid grid-cols-4 gap-1.5 pt-3 border-t border-slate-800/60 text-center">
+                        <div className="text-left">
+                          <div className="text-[9px] text-slate-500 font-medium">庫存股數</div>
+                          <div className="text-xs font-bold text-slate-300 font-mono mt-0.5">{item.shares.toLocaleString()}</div>
+                        </div>
+                        <div>
+                          <div className="text-[9px] text-slate-500 font-medium">市值</div>
+                          <div className="text-xs font-bold text-slate-300 font-mono mt-0.5">{item.marketValue.toLocaleString()}</div>
+                        </div>
+                        <div>
+                          <div className="text-[9px] text-slate-500 font-medium">損益</div>
+                          <div className="text-xs font-bold font-mono mt-0.5" style={{ color: colorStyle }}>
+                            {item.unrealizedGain >= 0 ? '+' : ''}{Math.round(item.unrealizedGain).toLocaleString()}
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-[9px] text-slate-500 font-medium">報酬率</div>
+                          <div className="text-xs font-bold font-mono mt-0.5" style={{ color: colorStyle }}>
+                            {item.unrealizedGain >= 0 ? '+' : ''}{item.unrealizedGainPercent.toFixed(2)}%
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </div>
         )}
 
         {activeTab === 'portfolio' && (
-          <div className="bg-slate-900 rounded-3xl shadow-sm border border-slate-800 overflow-hidden">
-             <div className="overflow-x-auto max-h-[70vh]">
+          <div className="space-y-4">
+            {/* Desktop Table View */}
+            <div className="hidden md:block bg-slate-900 rounded-3xl shadow-sm border border-slate-800 overflow-hidden">
+              <div className="overflow-x-auto max-h-[70vh]">
                 <table className="w-full text-left border-separate border-spacing-0">
                   <thead className="text-slate-400 text-xs uppercase tracking-wider sticky top-0 z-10">
                     <tr>
@@ -749,7 +855,7 @@ export default function App() {
                         }}
                       >
                         <td className="px-6 py-3">
-                          <div className="font-bold text-white">{item.name}</div>
+                          <div className="font-bold text-white max-w-[150px] truncate" style={{ whiteSpace: 'nowrap', wordBreak: 'keep-all', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.name}</div>
                           <div className="text-xs text-slate-500">{item.symbol}</div>
                         </td>
                         <td className="px-6 py-3 font-medium text-slate-300 text-right">{item.shares.toLocaleString()}</td>
@@ -782,6 +888,73 @@ export default function App() {
                   </tbody>
                 </table>
               </div>
+            </div>
+
+            {/* Mobile Card List View */}
+            <div className="block md:hidden space-y-4">
+              {portfolio.map((item) => {
+                const priceDiff = item.currentPrice - item.principalCostBasis;
+                const priceDiffPercent = item.principalCostBasis > 0 ? (priceDiff / item.principalCostBasis) * 100 : 0;
+                const itemUpColor = userProfile?.upColor || '#ef4444';
+                const itemDownColor = userProfile?.downColor || '#10b981';
+                const colorStyle = item.unrealizedGain >= 0 ? itemUpColor : itemDownColor;
+
+                return (
+                  <div 
+                    key={item.symbol} 
+                    onClick={() => {
+                      setTransactionFilterSymbol(item.symbol);
+                      setTransactionFilterType('all');
+                      setActiveTab('transactions');
+                    }}
+                    className="bg-slate-900 border border-slate-800 rounded-2xl relative overflow-hidden pl-4 pr-3 py-4 flex flex-col gap-3 cursor-pointer hover:bg-slate-800/20 active:bg-slate-850 transition-colors"
+                  >
+                    {/* Left Border Status Line */}
+                    <div className="absolute left-0 top-0 bottom-0 w-1.5" style={{ backgroundColor: colorStyle }}></div>
+                    
+                    {/* Top Section */}
+                    <div className="flex items-start justify-between">
+                      <div className="overflow-hidden mr-2">
+                        <div className="font-bold text-white text-base truncate max-w-[150px]" style={{ whiteSpace: 'nowrap', wordBreak: 'keep-all', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          {item.name}
+                        </div>
+                        <div className="text-xs text-slate-500 font-mono mt-0.5">{item.symbol}</div>
+                      </div>
+                      <div className="text-right flex-shrink-0">
+                        <div className="text-slate-100 font-bold text-base font-mono">{item.currentPrice.toFixed(2)}</div>
+                        <div className="text-xs font-bold font-mono flex items-center justify-end gap-1 mt-0.5" style={{ color: colorStyle }}>
+                          {priceDiff >= 0 ? '+' : ''}{priceDiff.toFixed(2)} ({priceDiffPercent >= 0 ? '+' : ''}{priceDiffPercent.toFixed(2)}%)
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Lower Grid Metrics */}
+                    <div className="grid grid-cols-4 gap-1.5 pt-3 border-t border-slate-800/60 text-center">
+                      <div className="text-left">
+                        <div className="text-[10px] text-slate-500 font-medium">庫存股數</div>
+                        <div className="text-xs font-bold text-slate-300 font-mono mt-0.5">{item.shares.toLocaleString()}</div>
+                      </div>
+                      <div>
+                        <div className="text-[10px] text-slate-500 font-medium">市值</div>
+                        <div className="text-xs font-bold text-slate-300 font-mono mt-0.5">{item.marketValue.toLocaleString()}</div>
+                      </div>
+                      <div>
+                        <div className="text-[10px] text-slate-500 font-medium">損益試算</div>
+                        <div className="text-xs font-bold font-mono mt-0.5" style={{ color: colorStyle }}>
+                          {item.unrealizedGain >= 0 ? '+' : ''}{Math.round(item.unrealizedGain).toLocaleString()}
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-[10px] text-slate-500 font-medium">報酬率</div>
+                        <div className="text-xs font-bold font-mono mt-0.5" style={{ color: colorStyle }}>
+                          {item.unrealizedGain >= 0 ? '+' : ''}{item.unrealizedGainPercent.toFixed(2)}%
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         )}
 
@@ -829,7 +1002,8 @@ export default function App() {
               )}
             </div>
 
-            <div className="bg-slate-900 rounded-3xl shadow-sm border border-slate-800 overflow-hidden">
+            {/* Desktop Table View */}
+            <div className="hidden md:block bg-slate-900 rounded-3xl shadow-sm border border-slate-800 overflow-hidden">
               <div className="overflow-x-auto max-h-[70vh]">
                 <table className="w-full text-left border-separate border-spacing-0">
                   <thead className="text-slate-400 text-xs uppercase tracking-wider sticky top-0 z-10">
@@ -868,12 +1042,12 @@ export default function App() {
                             </span>
                           </td>
                           <td className="px-6 py-3">
-                            <div className="font-bold text-white">{t.name}</div>
+                            <div className="font-bold text-white max-w-[150px] truncate" style={{ whiteSpace: 'nowrap', wordBreak: 'keep-all', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t.name}</div>
                             <div className="text-xs text-slate-500">{t.symbol}</div>
                           </td>
                           <td className="px-6 py-3 font-medium text-slate-300 text-right">{t.shares.toLocaleString()}</td>
                           <td className="px-6 py-3 font-medium text-slate-300 text-right">{t.price.toFixed(2)}</td>
-                          <td className="px-6 py-3 font-bold text-white text-right">{t.totalAmount?.toLocaleString() || t.amount.toLocaleString()}</td>
+                          <td className="px-6 py-3 font-bold text-white text-right">{(t.totalAmount || t.amount).toLocaleString()}</td>
                           <td className="px-6 py-3 text-center">
                             <button 
                               onClick={() => t.id && setDeleteConfirmId(t.id)}
@@ -894,6 +1068,87 @@ export default function App() {
                   </tbody>
                 </table>
               </div>
+            </div>
+
+            {/* Mobile Card List View */}
+            <div className="block md:hidden space-y-4">
+              {filteredTransactions.length > 0 ? (
+                filteredTransactions.map((t) => (
+                  <div 
+                    key={t.id} 
+                    className="bg-slate-900 border border-slate-800 p-4 rounded-2xl relative flex flex-col gap-3"
+                  >
+                    {/* Header */}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className={cn(
+                          "px-2 py-0.5 rounded text-[10px] font-bold tracking-wider",
+                          ['buy', 'margin_buy'].includes(t.type) && "bg-blue-900/40 text-blue-400 border border-blue-800/40",
+                          ['sell', 'margin_sell', 'short_sell'].includes(t.type) && "bg-red-900/40 text-red-500 border border-red-800/40",
+                          t.type === 'dividend' && "bg-emerald-900/40 text-emerald-400 border border-emerald-800/40",
+                          t.type === 'fee' && "bg-slate-800 text-slate-400 border border-slate-700",
+                          t.type === 'tax' && "bg-red-900/40 text-red-500 border border-red-800/40",
+                        )}>
+                          {t.type === 'buy' && '買入'}
+                          {t.type === 'sell' && '賣出'}
+                          {t.type === 'margin_buy' && '融資買進'}
+                          {t.type === 'margin_sell' && '融資賣出'}
+                          {t.type === 'short_sell' && '融券賣出'}
+                          {t.type === 'dividend' && '股利'}
+                          {t.type === 'fee' && '手續費'}
+                          {t.type === 'tax' && '稅金'}
+                        </span>
+                        <span className="text-xs text-slate-500 font-mono">{t.date}</span>
+                      </div>
+                      
+                      <button 
+                        onClick={() => t.id && setDeleteConfirmId(t.id)}
+                        className="text-slate-500 hover:text-red-400 p-1 rounded-lg hover:bg-slate-800 transition-colors"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+
+                    {/* Body */}
+                    <div className="flex justify-between items-end">
+                      <div className="overflow-hidden mr-2">
+                        <div className="font-bold text-white text-base truncate max-w-[170px]" style={{ whiteSpace: 'nowrap', wordBreak: 'keep-all', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          {t.name}
+                        </div>
+                        <div className="text-xs text-slate-500 font-mono mt-0.5">{t.symbol}</div>
+                      </div>
+                      <div className="text-right flex-shrink-0">
+                        <div className="text-[10px] text-slate-500 font-medium">成交總額</div>
+                        <div className="font-black text-md text-white font-mono">
+                          {(t.totalAmount || t.amount).toLocaleString()}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Details Grid */}
+                    <div className="grid grid-cols-3 gap-2 pt-3 border-t border-slate-800/60 text-center text-xs">
+                      <div className="text-left">
+                        <div className="text-[10px] text-slate-500">股數</div>
+                        <div className="font-bold text-slate-300 font-mono mt-0.5">{t.shares.toLocaleString()}</div>
+                      </div>
+                      <div>
+                        <div className="text-[10px] text-slate-500">單價</div>
+                        <div className="font-bold text-slate-300 font-mono mt-0.5">{t.price.toFixed(2)}</div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-[10px] text-slate-500">手續費 / 稅金</div>
+                        <div className="font-bold text-slate-300 font-mono mt-0.5">
+                          {t.fee.toLocaleString()} / {t.tax.toLocaleString()}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="bg-slate-900 border border-slate-800 p-12 rounded-2xl text-center text-slate-500">
+                  找不到符合條件的交易紀錄
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -1239,7 +1494,7 @@ function MobileNavItem({ active, onClick, icon }: { active: boolean, onClick: ()
       onClick={onClick}
       className={cn(
         "p-2 rounded-xl transition-all",
-        active ? "text-blue-600" : "text-slate-400"
+        active ? "text-blue-400" : "text-slate-500 hover:text-slate-400"
       )}
     >
       {React.cloneElement(icon as React.ReactElement, { className: "w-6 h-6" })}
