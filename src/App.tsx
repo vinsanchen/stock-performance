@@ -837,7 +837,7 @@ export default function App() {
                         setTransactionFilterType('all');
                         setActiveTab('transactions');
                       }}
-                      className="bg-slate-900/40 border border-slate-800/80 rounded-2xl relative overflow-hidden pl-5 pr-4 py-5 flex flex-col gap-4 cursor-pointer hover:bg-slate-800/20 active:bg-slate-850 transition-all leading-relaxed"
+                      className="bg-slate-900/40 border border-slate-800/80 rounded-2xl relative overflow-hidden pl-4 pr-3.5 py-3.5 flex flex-col gap-2.5 cursor-pointer hover:bg-slate-800/20 active:bg-slate-850 transition-all leading-normal"
                     >
                       {/* Left Side Accent Bar */}
                       <div className="absolute left-0 top-0 bottom-0 w-1.5" style={{ backgroundColor: colorStyle }}></div>
@@ -845,38 +845,40 @@ export default function App() {
                       {/* Top Row: Name/Code and Price info */}
                       <div className="flex items-start justify-between">
                         <div className="overflow-hidden mr-3">
-                          <div className="font-bold text-white text-[21px] truncate max-w-[185px] md:max-w-none" style={{ whiteSpace: 'nowrap', wordBreak: 'keep-all', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          <div className="font-bold text-white text-[19px] truncate max-w-[175px] md:max-w-none" style={{ whiteSpace: 'nowrap', wordBreak: 'keep-all', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                             {item.name}
                           </div>
-                          <div className="text-[15px] text-slate-500 font-mono mt-1">{item.symbol}</div>
+                          <div className="text-[13.5px] text-slate-500 font-mono mt-0.5">{item.symbol}</div>
                         </div>
                         <div className="text-right flex-shrink-0">
-                          <div className="text-slate-100 font-black text-[24px] font-mono leading-none">{item.currentPrice.toFixed(2)}</div>
-                          <div className="text-[17px] font-bold font-mono flex items-center justify-end gap-1 mt-1.5 leading-none" style={{ color: colorStyle }}>
+                          <div className="text-slate-100 font-black text-[21px] font-mono leading-none">{item.currentPrice.toFixed(2)}</div>
+                          <div className="text-[15px] font-bold font-mono flex items-center justify-end gap-1 mt-1 leading-none" style={{ color: colorStyle }}>
                             {priceDiff >= 0 ? '+' : ''}{priceDiff.toFixed(2)} ({priceDiffPercent >= 0 ? '+' : ''}{priceDiffPercent.toFixed(2)}%)
                           </div>
                         </div>
                       </div>
 
                       {/* Small Bottom Metrics */}
-                      <div className="grid grid-cols-4 gap-1.5 pt-4 border-t border-slate-800/60 text-center">
+                      <div className="grid grid-cols-4 gap-1.5 pt-3 border-t border-slate-800/60 text-center">
                         <div className="text-left">
-                          <div className="text-[14px] text-slate-500 font-semibold mb-0.5">庫存股數</div>
-                          <div className="text-[17px] font-extrabold text-slate-200 font-mono">{item.shares.toLocaleString()}</div>
+                          <div className="text-[12.5px] text-slate-500 font-semibold mb-0.5">股數/成本</div>
+                          <div className="text-[15px] font-extrabold text-slate-200 font-mono truncate">
+                            {item.shares.toLocaleString()}<span className="text-slate-500 font-normal text-[11px] mx-0.5">/</span>{Math.round(item.totalCost).toLocaleString()}
+                          </div>
                         </div>
                         <div>
-                          <div className="text-[14px] text-slate-500 font-semibold mb-0.5">持有成本</div>
-                          <div className="text-[17px] font-extrabold text-slate-200 font-mono">{Math.round(item.totalCost).toLocaleString()}</div>
+                          <div className="text-[12.5px] text-slate-500 font-semibold mb-0.5">市值</div>
+                          <div className="text-[15px] font-extrabold text-slate-200 font-mono">{Math.round(item.marketValue).toLocaleString()}</div>
                         </div>
                         <div>
-                          <div className="text-[14px] text-slate-500 font-semibold mb-0.5">損益</div>
-                          <div className="text-[17px] font-extrabold font-mono" style={{ color: colorStyle }}>
+                          <div className="text-[12.5px] text-slate-500 font-semibold mb-0.5">損益</div>
+                          <div className="text-[15px] font-extrabold font-mono" style={{ color: colorStyle }}>
                             {item.unrealizedGain >= 0 ? '+' : ''}{Math.round(item.unrealizedGain).toLocaleString()}
                           </div>
                         </div>
                         <div className="text-right">
-                          <div className="text-[14px] text-slate-500 font-semibold mb-0.5">報酬率</div>
-                          <div className="text-[17px] font-extrabold font-mono" style={{ color: colorStyle }}>
+                          <div className="text-[12.5px] text-slate-500 font-semibold mb-0.5">報酬率</div>
+                          <div className="text-[15px] font-extrabold font-mono" style={{ color: colorStyle }}>
                             {item.unrealizedGain >= 0 ? '+' : ''}{item.unrealizedGainPercent.toFixed(2)}%
                           </div>
                         </div>
@@ -972,7 +974,7 @@ export default function App() {
                       setTransactionFilterType('all');
                       setActiveTab('transactions');
                     }}
-                    className="bg-slate-900 border border-slate-800 rounded-2xl relative overflow-hidden pl-5 pr-4 py-5 flex flex-col gap-4 cursor-pointer hover:bg-slate-800/20 active:bg-slate-850 transition-all leading-relaxed"
+                    className="bg-slate-900 border border-slate-800 rounded-2xl relative overflow-hidden pl-4 pr-3.5 py-3.5 flex flex-col gap-2.5 cursor-pointer hover:bg-slate-800/20 active:bg-slate-850 transition-all leading-normal"
                   >
                     {/* Left Border Status Line */}
                     <div className="absolute left-0 top-0 bottom-0 w-1.5" style={{ backgroundColor: colorStyle }}></div>
@@ -980,38 +982,40 @@ export default function App() {
                     {/* Top Section */}
                     <div className="flex items-start justify-between">
                       <div className="overflow-hidden mr-3">
-                        <div className="font-bold text-white text-[21px] truncate max-w-[185px] md:max-w-none" style={{ whiteSpace: 'nowrap', wordBreak: 'keep-all', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        <div className="font-bold text-white text-[19px] truncate max-w-[175px] md:max-w-none" style={{ whiteSpace: 'nowrap', wordBreak: 'keep-all', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                           {item.name}
                         </div>
-                        <div className="text-[15px] text-slate-500 font-mono mt-1">{item.symbol}</div>
+                        <div className="text-[13.5px] text-slate-500 font-mono mt-0.5">{item.symbol}</div>
                       </div>
                       <div className="text-right flex-shrink-0">
-                        <div className="text-slate-100 font-black text-[24px] font-mono leading-none">{item.currentPrice.toFixed(2)}</div>
-                        <div className="text-[17px] font-bold font-mono flex items-center justify-end gap-1 mt-1.5 leading-none" style={{ color: colorStyle }}>
+                        <div className="text-slate-100 font-black text-[21px] font-mono leading-none">{item.currentPrice.toFixed(2)}</div>
+                        <div className="text-[15px] font-bold font-mono flex items-center justify-end gap-1 mt-1 leading-none" style={{ color: colorStyle }}>
                           {priceDiff >= 0 ? '+' : ''}{priceDiff.toFixed(2)} ({priceDiffPercent >= 0 ? '+' : ''}{priceDiffPercent.toFixed(2)}%)
                         </div>
                       </div>
                     </div>
 
                     {/* Lower Grid Metrics */}
-                    <div className="grid grid-cols-4 gap-1.5 pt-4 border-t border-slate-800/60 text-center">
+                    <div className="grid grid-cols-4 gap-1.5 pt-3 border-t border-slate-800/60 text-center">
                       <div className="text-left">
-                        <div className="text-[14px] text-slate-500 font-semibold mb-0.5">庫存股數</div>
-                        <div className="text-[17px] font-extrabold text-slate-200 font-mono">{item.shares.toLocaleString()}</div>
+                        <div className="text-[12.5px] text-slate-500 font-semibold mb-0.5">股數/成本</div>
+                        <div className="text-[15px] font-extrabold text-slate-200 font-mono truncate">
+                          {item.shares.toLocaleString()}<span className="text-slate-500 font-normal text-[11px] mx-0.5">/</span>{Math.round(item.totalCost).toLocaleString()}
+                        </div>
                       </div>
                       <div>
-                        <div className="text-[14px] text-slate-500 font-semibold mb-0.5">持有成本</div>
-                        <div className="text-[17px] font-extrabold text-slate-200 font-mono">{Math.round(item.totalCost).toLocaleString()}</div>
+                        <div className="text-[12.5px] text-slate-500 font-semibold mb-0.5">市值</div>
+                        <div className="text-[15px] font-extrabold text-slate-200 font-mono">{Math.round(item.marketValue).toLocaleString()}</div>
                       </div>
                       <div>
-                        <div className="text-[14px] text-slate-500 font-semibold mb-0.5">損益</div>
-                        <div className="text-[17px] font-extrabold font-mono" style={{ color: colorStyle }}>
+                        <div className="text-[12.5px] text-slate-500 font-semibold mb-0.5">損益</div>
+                        <div className="text-[15px] font-extrabold font-mono" style={{ color: colorStyle }}>
                           {item.unrealizedGain >= 0 ? '+' : ''}{Math.round(item.unrealizedGain).toLocaleString()}
                         </div>
                       </div>
                       <div className="text-right">
-                        <div className="text-[14px] text-slate-500 font-semibold mb-0.5">報酬率</div>
-                        <div className="text-[17px] font-extrabold font-mono" style={{ color: colorStyle }}>
+                        <div className="text-[12.5px] text-slate-500 font-semibold mb-0.5">報酬率</div>
+                        <div className="text-[15px] font-extrabold font-mono" style={{ color: colorStyle }}>
                           {item.unrealizedGain >= 0 ? '+' : ''}{item.unrealizedGainPercent.toFixed(2)}%
                         </div>
                       </div>
