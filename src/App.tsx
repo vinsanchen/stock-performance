@@ -199,6 +199,44 @@ export default function App() {
     return calculatePortfolio(transactions, pricesMap);
   }, [transactions, stockPrices]);
 
+  const assetAllocationData = useMemo(() => {
+    const active = portfolio.filter(item => item.shares > 0 && item.marketValue > 0);
+    const sorted = [...active].sort((a, b) => b.marketValue - a.marketValue);
+    
+    const MAX_ITEMS = 5;
+    if (sorted.length <= MAX_ITEMS + 1) {
+      return sorted;
+    }
+    
+    const topItems = sorted.slice(0, MAX_ITEMS);
+    const otherItems = sorted.slice(MAX_ITEMS);
+    const otherMarketValue = otherItems.reduce((sum, item) => sum + item.marketValue, 0);
+    
+    return [
+      ...topItems,
+      {
+        symbol: 'OTHERS',
+        name: '其他',
+        shares: 0,
+        currentPrice: 0,
+        costBasis: 0,
+        totalCost: 0,
+        totalPrincipal: 0,
+        marketValue: otherMarketValue,
+        unrealizedGain: 0,
+        unrealizedGainPercent: 0,
+        principalCostBasis: 0
+      } as PortfolioItem
+    ];
+  }, [portfolio]);
+
+  const unrealizedGainRankingData = useMemo(() => {
+    return portfolio
+      .filter(i => i.shares > 0)
+      .sort((a, b) => b.unrealizedGain - a.unrealizedGain)
+      .slice(0, 5);
+  }, [portfolio]);
+
   const stats = useMemo(() => {
     const totalMarketValue = portfolio.reduce((sum, item) => sum + item.marketValue, 0);
     const totalCost = portfolio.reduce((sum, item) => sum + item.totalCost, 0);
@@ -450,7 +488,7 @@ export default function App() {
           <div className="w-20 h-20 bg-blue-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
             <TrendingUp className="w-10 h-10 text-blue-600" />
           </div>
-          <h1 className="text-3xl font-bold text-slate-900 mb-2">台股投資達人</h1>
+          <h1 className="text-3xl font-bold text-slate-900 mb-2">59LiHi投資紀錄</h1>
           <p className="text-slate-500 mb-8">智慧紀錄與績效分析，掌握每一分資產的跳動。</p>
           <button 
             onClick={signInWithGoogle}
@@ -527,7 +565,7 @@ export default function App() {
           <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-900/20">
             <TrendingUp className="w-6 h-6 text-white" />
           </div>
-          <span className="font-bold text-xl tracking-tight text-white">台股投資達人</span>
+          <span className="font-bold text-xl tracking-tight text-white">59LiHi投資紀錄</span>
         </div>
 
         <nav className="space-y-2 flex-1">
@@ -731,7 +769,7 @@ export default function App() {
                   <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                     <PieChart>
                       <Pie
-                        data={portfolio.filter(i => i.marketValue > 0)}
+                        data={assetAllocationData}
                         cx="50%"
                         cy="50%"
                         innerRadius={60}
@@ -740,9 +778,10 @@ export default function App() {
                         dataKey="marketValue"
                         nameKey="name"
                       >
-                        {portfolio.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                        ))}
+                        {assetAllocationData.map((entry, index) => {
+                          const color = entry.symbol === 'OTHERS' ? '#64748b' : COLORS[index % COLORS.length];
+                          return <Cell key={`cell-${index}`} fill={color} />;
+                        })}
                       </Pie>
                       <Tooltip 
                         contentStyle={{ backgroundColor: '#0f172a', border: 'none', borderRadius: '12px', color: '#f8fafc' }}
@@ -759,17 +798,33 @@ export default function App() {
                 <h3 className="font-bold text-lg mb-6 text-white">持股損益排行</h3>
                 <div className="h-64 w-full min-h-[256px]">
                   <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
-                    <BarChart data={portfolio.filter(i => i.shares > 0).sort((a, b) => b.unrealizedGain - a.unrealizedGain).slice(0, 5)}>
+                    <BarChart data={unrealizedGainRankingData}>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#1e293b" />
-                      <XAxis dataKey="symbol" axisLine={false} tickLine={false} stroke="#94a3b8" />
+                      <XAxis dataKey="name" axisLine={false} tickLine={false} stroke="#94a3b8" />
                       <YAxis axisLine={false} tickLine={false} stroke="#94a3b8" />
                       <Tooltip 
-                        contentStyle={{ backgroundColor: '#0f172a', border: 'none', borderRadius: '12px', color: '#f8fafc' }}
-                        itemStyle={{ color: '#f8fafc' }}
-                        formatter={(value: number) => `${value.toLocaleString()}`} 
+                        content={({ active, payload }) => {
+                          if (active && payload && payload.length) {
+                            const data = payload[0].payload;
+                            const isPositive = data.unrealizedGain >= 0;
+                            const color = isPositive ? (userProfile?.upColor || '#ef4444') : (userProfile?.downColor || '#10b981');
+                            return (
+                              <div className="bg-slate-950 border border-slate-800 p-3.5 rounded-2xl shadow-xl leading-normal text-left">
+                                <div className="font-bold text-white text-[15px] mb-1">
+                                  {data.name} <span className="font-mono text-slate-400 text-xs ml-1">{data.symbol}</span>
+                                </div>
+                                <div className="text-[14px] font-bold font-mono flex items-center gap-1.5" style={{ color }}>
+                                  損益: {isPositive ? '+' : ''}{Math.round(data.unrealizedGain).toLocaleString()}
+                                  <span className="text-xs font-normal">({isPositive ? '+' : ''}{data.unrealizedGainPercent.toFixed(2)}%)</span>
+                                </div>
+                              </div>
+                            );
+                          }
+                          return null;
+                        }}
                       />
-                      <Bar dataKey="unrealizedGain" radius={[4, 4, 0, 0]}>
-                        {portfolio.map((entry, index) => (
+                      <Bar dataKey="unrealizedGain" radius={[6, 6, 0, 0]}>
+                        {unrealizedGainRankingData.map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={entry.unrealizedGain >= 0 ? (userProfile?.upColor || '#ef4444') : (userProfile?.downColor || '#10b981')} />
                         ))}
                       </Bar>
