@@ -237,6 +237,79 @@ export default function App() {
       .slice(0, 5);
   }, [portfolio]);
 
+  const transactionsWithPnL = useMemo(() => {
+    const sellPnLMap: Record<string, { realizedCost: number; realizedGain: number; realizedGainPercent: number }> = {};
+
+    // Group transactions by symbol
+    const grouped: Record<string, Transaction[]> = {};
+    transactions.forEach(t => {
+      if (!t.symbol) return;
+      if (!grouped[t.symbol]) {
+        grouped[t.symbol] = [];
+      }
+      grouped[t.symbol].push(t);
+    });
+
+    // Process each symbol
+    Object.keys(grouped).forEach(symbol => {
+      // Sort chronologically (old to new)
+      const sorted = [...grouped[symbol]].sort((a, b) => {
+        const dateCompare = a.date.localeCompare(b.date);
+        if (dateCompare !== 0) return dateCompare;
+        const aTime = (a as any).createdAt?.toMillis?.() || (a as any).createdAt?.seconds || 0;
+        const bTime = (b as any).createdAt?.toMillis?.() || (b as any).createdAt?.seconds || 0;
+        return aTime - bTime;
+      });
+
+      let runningShares = 0;
+      let runningCost = 0;
+
+      sorted.forEach(t => {
+        const isBuy = ['buy', 'margin_buy'].includes(t.type);
+        const isSell = ['sell', 'margin_sell', 'short_sell'].includes(t.type);
+
+        const sharesVal = Number(t.shares) || 0;
+        const totalAmountVal = Number(t.totalAmount ?? t.amount) || 0;
+
+        if (isBuy) {
+          runningShares += sharesVal;
+          runningCost += totalAmountVal;
+        } else if (isSell) {
+          if (runningShares > 0) {
+            const avgCost = runningCost / runningShares;
+            const deductShares = Math.min(sharesVal, runningShares);
+            const singleCost = deductShares * avgCost;
+            
+            const revenue = sharesVal > 0 ? totalAmountVal * (deductShares / sharesVal) : totalAmountVal;
+            const singlePnL = revenue - singleCost;
+            const gainPercent = singleCost > 0 ? (singlePnL / singleCost) * 100 : 0;
+
+            if (t.id) {
+              sellPnLMap[t.id] = {
+                realizedCost: singleCost,
+                realizedGain: singlePnL,
+                realizedGainPercent: gainPercent
+              };
+            }
+
+            runningShares -= deductShares;
+            runningCost -= singleCost;
+          } else {
+            if (t.id) {
+              sellPnLMap[t.id] = {
+                realizedCost: 0,
+                realizedGain: totalAmountVal,
+                realizedGainPercent: 0
+              };
+            }
+          }
+        }
+      });
+    });
+
+    return sellPnLMap;
+  }, [transactions]);
+
   const stats = useMemo(() => {
     const totalMarketValue = portfolio.reduce((sum, item) => sum + item.marketValue, 0);
     const totalCost = portfolio.reduce((sum, item) => sum + item.totalCost, 0);
@@ -1212,7 +1285,23 @@ export default function App() {
                           </td>
                           <td className="px-6 py-3 font-medium text-slate-300 text-right">{t.shares.toLocaleString()}</td>
                           <td className="px-6 py-3 font-medium text-slate-300 text-right">{t.price.toFixed(2)}</td>
-                          <td className="px-6 py-3 font-bold text-white text-right">{(t.totalAmount || t.amount).toLocaleString()}</td>
+                          <td className="px-6 py-3 font-bold text-white text-right">
+                            <div>{(t.totalAmount || t.amount).toLocaleString()}</div>
+                            {['sell', 'margin_sell', 'short_sell'].includes(t.type) && t.id && transactionsWithPnL[t.id] && (
+                              <div className="text-[11px] font-medium mt-1 space-y-0.5">
+                                <div className="text-slate-500 font-normal">
+                                  成本: <span className="font-mono">{Math.round(transactionsWithPnL[t.id].realizedCost).toLocaleString()}</span>
+                                </div>
+                                <div 
+                                  className="font-mono font-bold flex items-center justify-end gap-1" 
+                                  style={{ color: transactionsWithPnL[t.id].realizedGain >= 0 ? (userProfile?.upColor || '#ef4444') : (userProfile?.downColor || '#10b981') }}
+                                >
+                                  <span>{transactionsWithPnL[t.id].realizedGain >= 0 ? '+' : ''}{Math.round(transactionsWithPnL[t.id].realizedGain).toLocaleString()}</span>
+                                  <span className="text-[10px] font-normal">({transactionsWithPnL[t.id].realizedGainPercent >= 0 ? '+' : ''}{transactionsWithPnL[t.id].realizedGainPercent.toFixed(2)}%)</span>
+                                </div>
+                              </div>
+                            )}
+                          </td>
                           <td className="px-6 py-3 text-center">
                             <button 
                               onClick={() => t.id && setDeleteConfirmId(t.id)}
@@ -1289,6 +1378,28 @@ export default function App() {
                         </div>
                       </div>
                     </div>
+
+                    {/* Sell PnL Block for Mobile */}
+                    {['sell', 'margin_sell', 'short_sell'].includes(t.type) && t.id && transactionsWithPnL[t.id] && (
+                      <div className="bg-slate-950/45 rounded-xl px-3 py-2 border border-slate-800/60 flex justify-between items-center text-[11px] gap-2">
+                        <div className="flex items-center gap-1">
+                          <span className="text-slate-500">成本:</span>
+                          <span className="font-mono text-slate-300 font-semibold">
+                            {Math.round(transactionsWithPnL[t.id].realizedCost).toLocaleString()}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <span className="text-slate-500">損益:</span>
+                          <span 
+                            className="font-mono font-bold flex items-center gap-0.5"
+                            style={{ color: transactionsWithPnL[t.id].realizedGain >= 0 ? (userProfile?.upColor || '#ef4444') : (userProfile?.downColor || '#10b981') }}
+                          >
+                            <span>{transactionsWithPnL[t.id].realizedGain >= 0 ? '+' : ''}{Math.round(transactionsWithPnL[t.id].realizedGain).toLocaleString()}</span>
+                            <span className="text-[9px] font-normal">({transactionsWithPnL[t.id].realizedGainPercent >= 0 ? '+' : ''}{transactionsWithPnL[t.id].realizedGainPercent.toFixed(2)}%)</span>
+                          </span>
+                        </div>
+                      </div>
+                    )}
 
                     {/* Details Grid */}
                     <div className="grid grid-cols-3 gap-2 pt-3 border-t border-slate-800/60 text-center text-xs">
